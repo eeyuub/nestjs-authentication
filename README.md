@@ -118,9 +118,11 @@ With Mau, you can deploy your application in just a few clicks, allowing you to 
 
 - `POST /auth/register` - Register a new user
 - `POST /auth/login` - Login and get JWT token
+- `GET /auth/me` - Get current user profile (Authenticated users)
 
 ### Users
 
+- `GET /users/profile` - Get current user profile (Authenticated users)
 - `GET /users` - Get all users (Admin only)
 - `GET /users/:id` - Get user by ID (Admin and Moderator)
 - `PATCH /users/:id` - Update user (Admin only)
@@ -137,6 +139,8 @@ The application uses a role-based access control system with the following roles
 You can extend the roles by adding more values to the `Role` enum in `src/users/enums/role.enum.ts`.
 
 ## Using Guards and Decorators
+
+### Role-Based Access Control
 
 To protect routes with role-based access control:
 
@@ -157,6 +161,28 @@ export class ExampleController {
   }
 }
 ```
+
+### Current User Decorator
+
+The application provides a convenient `@CurrentUser()` decorator to easily access the authenticated user in your controllers:
+
+```typescript
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
+
+@Controller('example')
+export class ExampleController {
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  getProfile(@CurrentUser() user: User) {
+    return user;
+  }
+}
+```
+
+This decorator extracts the user object from the request, which is populated by the JWT strategy during authentication.
 
 ## Resources
 
