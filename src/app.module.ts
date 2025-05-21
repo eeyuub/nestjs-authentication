@@ -5,6 +5,8 @@ import { ConfigModule } from './config/config.module';
 import { DbModule } from './db/db.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { EmailModule } from './email/email.module';
+import { InitModule } from './init/init.module';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { AuthModule } from './auth/auth.module';
     DbModule,
     UsersModule,
     AuthModule,
+    EmailModule,
+    InitModule,
   ],
   controllers: [AppController],
   providers: [AppService],

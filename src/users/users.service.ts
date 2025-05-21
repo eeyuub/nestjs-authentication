@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Role } from './enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -45,6 +46,12 @@ export class UsersService {
     return user;
   }
 
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { passwordResetToken: token },
+    });
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
     
@@ -60,15 +67,45 @@ export class UsersService {
 
     Object.assign(user, updateUserDto);
     
-    if (updateUserDto.password) {
-      await user.hashPassword();
-    }
-    
     return this.usersRepository.save(user);
   }
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     await this.usersRepository.remove(user);
+  }
+
+  async save(user: User): Promise<User> {
+    return this.usersRepository.save(user);
+  }
+
+  /**
+   * Create a default admin user if no admin exists
+   */
+  async createDefaultAdminIfNotExists(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+  ): Promise<User | null> {
+    // Check if any admin user exists
+    const adminExists = await this.usersRepository.findOne({
+      where: { roles: [Role.ADMIN] },
+    });
+
+    if (adminExists) {
+      return null; // Admin already exists
+    }
+
+    // Create admin user
+    const adminUser = this.usersRepository.create({
+      email,
+      password,
+      firstName,
+      lastName,
+      roles: [Role.ADMIN],
+    });
+
+    return this.usersRepository.save(adminUser);
   }
 }

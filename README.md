@@ -33,13 +33,17 @@ A NestJS application with JWT authentication and role-based access control.
 - User management with roles
 - Guards and decorators for route protection
 - Clean, modular architecture
+- Password reset functionality with email notifications
+- Account management (close/reactivate account)
+- Default admin user creation
+- Email service for notifications
 
 ## Project Structure
 
 ```
 src/
 ├── auth/                  # Authentication module
-│   ├── decorators/        # Custom decorators (e.g., @Roles)
+│   ├── decorators/        # Custom decorators (e.g., @Roles, @CurrentUser)
 │   ├── dto/               # Data Transfer Objects for auth
 │   ├── guards/            # Guards for route protection
 │   ├── strategies/        # Passport strategies (JWT)
@@ -47,9 +51,17 @@ src/
 │   ├── auth.module.ts     # Auth module configuration
 │   └── auth.service.ts    # Auth business logic
 ├── config/                # Configuration module
-│   └── config.module.ts   # Environment variables configuration
+│   ├── config.module.ts   # Environment variables configuration
+│   └── validation.schema.ts # Joi validation schema for env vars
 ├── db/                    # Database module
 │   └── db.module.ts       # TypeORM configuration
+├── email/                 # Email module
+│   ├── templates/         # Email templates (Handlebars)
+│   ├── email.module.ts    # Email module configuration
+│   └── email.service.ts   # Email sending service
+├── init/                  # Initialization module
+│   ├── init.module.ts     # Init module configuration
+│   └── init.service.ts    # Default admin user creation
 ├── users/                 # Users module
 │   ├── dto/               # Data Transfer Objects for users
 │   ├── entities/          # User entity
@@ -119,6 +131,11 @@ With Mau, you can deploy your application in just a few clicks, allowing you to 
 - `POST /auth/register` - Register a new user
 - `POST /auth/login` - Login and get JWT token
 - `GET /auth/me` - Get current user profile (Authenticated users)
+- `POST /auth/forgot-password` - Request password reset email
+- `POST /auth/reset-password` - Reset password with token
+- `PATCH /auth/change-password` - Change password (Authenticated users)
+- `DELETE /auth/close-account` - Close account (Authenticated users)
+- `PATCH /auth/reactivate-account` - Reactivate closed account (Authenticated users)
 
 ### Users
 

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert, CreateDateColumn, UpdateDateColumn, BeforeUpdate } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../enums/role.enum';
@@ -29,6 +29,21 @@ export class User {
   })
   roles: Role[];
 
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column({ nullable: true })
+  @Exclude()
+  passwordResetToken: string;
+
+  @Column({ nullable: true })
+  @Exclude()
+  passwordResetExpires: Date;
+
+  @Column({ nullable: true })
+  @Exclude()
+  lastLogin: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -37,10 +52,70 @@ export class User {
 
   @BeforeInsert()
   async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 10);
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
+
+  @BeforeUpdate()
+  async hashPasswordOnUpdate() {
+    // Only hash the password if it was modified
+    if (this.password && this.password.length < 60) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
   }
 
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this.password);
+  }
+
+  /**
+   * Change user password
+   * @param newPassword - The new password to set
+   */
+  async changePassword(newPassword: string): Promise<void> {
+    this.password = await bcrypt.hash(newPassword, 10);
+    // Clear any reset tokens when password is changed
+    this.passwordResetToken = null;
+    this.passwordResetExpires = null;
+  }
+
+  /**
+   * Close user account
+   */
+  closeAccount(): void {
+    this.isActive = false;
+  }
+
+  /**
+   * Reactivate user account
+   */
+  reactivateAccount(): void {
+    this.isActive = true;
+  }
+
+  /**
+   * Set password reset token and expiration
+   * @param token - The reset token
+   * @param expires - When the token expires
+   */
+  setPasswordResetToken(token: string, expires: Date): void {
+    this.passwordResetToken = token;
+    this.passwordResetExpires = expires;
+  }
+
+  /**
+   * Clear password reset token
+   */
+  clearPasswordResetToken(): void {
+    this.passwordResetToken = null;
+    this.passwordResetExpires = null;
+  }
+
+  /**
+   * Update last login timestamp
+   */
+  updateLastLogin(): void {
+    this.lastLogin = new Date();
   }
 }
