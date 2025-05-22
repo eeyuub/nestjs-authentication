@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import * as handlebars from 'handlebars';
-import * as fs from 'fs';
-import * as path from 'path';
+import { generatePasswordResetEmail } from './templates/password-reset.template';
 
 @Injectable()
 export class EmailService {
@@ -13,12 +11,12 @@ export class EmailService {
   constructor(private configService: ConfigService) {
     // Create reusable transporter object using SMTP transport
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('EMAIL_HOST'),
-      port: this.configService.get<number>('EMAIL_PORT'),
-      secure: this.configService.get<boolean>('EMAIL_SECURE', false),
+      host: this.configService.get('EMAIL_HOST'),
+      port: this.configService.get('EMAIL_PORT'),
+      secure: this.configService.get('EMAIL_SECURE', false),
       auth: {
-        user: this.configService.get<string>('EMAIL_USER'),
-        pass: this.configService.get<string>('EMAIL_PASSWORD'),
+        user: this.configService.get('EMAIL_USER'),
+        pass: this.configService.get('EMAIL_PASSWORD'),
       },
     });
   }
@@ -27,32 +25,14 @@ export class EmailService {
    * Send an email
    * @param to - Recipient email address
    * @param subject - Email subject
-   * @param template - Template name (without extension)
-   * @param context - Template context data
+   * @param html - Email HTML content
    */
   async sendEmail(
     to: string,
     subject: string,
-    template: string,
-    context: any,
+    html: string,
   ): Promise<void> {
     try {
-      // Get template path
-      const templatePath = path.join(
-        __dirname,
-        'templates',
-        `${template}.hbs`,
-      );
-
-      // Read template file
-      const templateSource = fs.readFileSync(templatePath, 'utf8');
-
-      // Compile template
-      const compiledTemplate = handlebars.compile(templateSource);
-
-      // Render template with context
-      const html = compiledTemplate(context);
-
       // Send email
       await this.transporter.sendMail({
         from: `"${this.configService.get<string>(
@@ -86,11 +66,13 @@ export class EmailService {
       'FRONTEND_URL',
     )}/reset-password?token=${resetToken}`;
 
-    await this.sendEmail(to, 'Password Reset', 'password-reset', {
+    const html = generatePasswordResetEmail({
       name: userName,
       resetUrl,
       expiresIn: '1 hour',
     });
+
+    await this.sendEmail(to, 'Password Reset', html);
   }
 
   /**
@@ -99,9 +81,15 @@ export class EmailService {
    * @param userName - User's name
    */
   async sendWelcomeEmail(to: string, userName: string): Promise<void> {
-    await this.sendEmail(to, 'Welcome to NestJS Auth', 'welcome', {
-      name: userName,
-      loginUrl: `${this.configService.get<string>('FRONTEND_URL')}/login`,
-    });
+    // Simple welcome email for now
+    const html = `
+      <h1>Welcome to NestJS Auth!</h1>
+      <p>Hello ${userName},</p>
+      <p>Thank you for registering with us.</p>
+      <p>You can log in at: <a href="${this.configService.get<string>('FRONTEND_URL')}/login">Login</a></p>
+      <p>Best regards,<br>The NestJS Auth Team</p>
+    `;
+    
+    await this.sendEmail(to, 'Welcome to NestJS Auth', html);
   }
 }

@@ -132,7 +132,7 @@ export class AuthService {
     }
     
     // Check if token is expired
-    if (user.passwordResetExpires < new Date()) {
+    if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
       throw new BadRequestException('Reset token has expired');
     }
     

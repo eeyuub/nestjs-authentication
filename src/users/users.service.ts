@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ArrayContains } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -90,7 +90,7 @@ export class UsersService {
   ): Promise<User | null> {
     // Check if any admin user exists
     const adminExists = await this.usersRepository.findOne({
-      where: { roles: [Role.ADMIN] },
+      where: { roles: ArrayContains([Role.ADMIN]) },
     });
 
     if (adminExists) {

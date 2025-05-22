@@ -24,8 +24,9 @@ export class User {
   @Column({
     type: 'enum',
     enum: Role,
-    default: Role.USER,
+    default: [Role.USER],
     array: true,
+    enumName: 'user_role_enum'
   })
   roles: Role[];
 
@@ -76,8 +77,8 @@ export class User {
   async changePassword(newPassword: string): Promise<void> {
     this.password = await bcrypt.hash(newPassword, 10);
     // Clear any reset tokens when password is changed
-    this.passwordResetToken = null;
-    this.passwordResetExpires = null;
+    this.passwordResetToken = '';
+    this.passwordResetExpires = null as any;
   }
 
   /**
@@ -108,8 +109,8 @@ export class User {
    * Clear password reset token
    */
   clearPasswordResetToken(): void {
-    this.passwordResetToken = null;
-    this.passwordResetExpires = null;
+    this.passwordResetToken = '';
+    this.passwordResetExpires = null as any;
   }
 
   /**

@@ -1,0 +1,85 @@
+/**
+ * Password reset email template
+ * @param params Template parameters
+ * @returns HTML string
+ */
+export function generatePasswordResetEmail(params: {
+  name: string;
+  resetUrl: string;
+  expiresIn: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Reset</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .button {
+      display: inline-block;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #777;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Password Reset Request</h2>
+    </div>
+    
+    <p>Hello ${params.name},</p>
+    
+    <p>We received a request to reset your password. If you didn't make this request, you can safely ignore this email.</p>
+    
+    <p>To reset your password, click the button below:</p>
+    
+    <div style="text-align: center;">
+      <a href="${params.resetUrl}" class="button">Reset Password</a>
+    </div>
+    
+    <p>Or copy and paste this URL into your browser:</p>
+    <p style="word-break: break-all;">${params.resetUrl}</p>
+    
+    <p>This link will expire in ${params.expiresIn}.</p>
+    
+    <p>If you have any questions, please contact our support team.</p>
+    
+    <p>Best regards,<br>The NestJS Auth Team</p>
+    
+    <div class="footer">
+      <p>This is an automated email, please do not reply.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+} 
